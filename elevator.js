@@ -9,9 +9,9 @@
                 let currentFloor = elevator.currentFloor();
                 let allPressedFloorButtons = elevator.getPressedFloors(); //inside
                 let firstPressedFloorButton = elevator.getFirstPressedFloor(); //inside
-                let load = elevator.loadFactor();
+                let load = elevator.loadFactor(); // 0 means empty, 1 means full
 
-                if (load > 0.1) {
+                if (load > 0.5) {
                     if (Array.isArray(allPressedFloorButtons) && allPressedFloorButtons.length > 0) {
                         let temp = [];
 
@@ -26,26 +26,28 @@
                         })
                     }
                 } else {
-                    elevator.goToFloor(firstPressedFloorButton);
+                    // almost empty
+                    for (fl = 0; fl < floors.length; fl++) {
+                        let floor = floors[fl];
+
+                        if (elevator.loadFactor() < 0.3) {
+                            floor.on("up_button_pressed", function() {
+                                elevator.goToFloor(floor.level);
+                            });
+
+                            floor.on("down_button_pressed", function() {
+                                elevator.goToFloor(floor.level); 
+                            });
+                        } else {
+                            elevator.goToFloor(firstPressedFloorButton);
+                        }
+                    }
                 }
             })
 
-            for (fl = 0; fl < floors.length; fl++) {
-                let floor = floors[fl];
-
-                if (elevator.loadFactor() < 0.2) {
-                    floor.on("up_button_pressed", function() {
-                        elevator.goToFloor(floor.level); 
-                    });
-
-                    floor.on("down_button_pressed", function() {
-                        elevator.goToFloor(floor.level); 
-                    });
-                }
-            }
         }
     },
-    
+
     update: function(dt, elevators, floors) {
         // We normally don't need to do anything here
     }

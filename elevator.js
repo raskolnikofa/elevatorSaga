@@ -14,15 +14,15 @@
             // Event when elevator is empty
             elevator.on("idle", function() {
                 elevator.goToFloor(groundFloor);
-                // elevator.goingUpIndicator(true)
-                // elevator.goingDownIndicator(false);
+                elevator.goingUpIndicator(true)
+                elevator.goingDownIndicator(true);
                 proritazeFloors();
                 checkFloors();
             });
 
             // Listen for the "floor_button_pressed" event, 
             // issued when a passenger pressed a button inside the elevator. 
-            // This indicates that the passenger wants to go to that floor. 
+            // This indicates that the passenger wants to go to that floor.
             elevator.on("floor_button_pressed", function(floor) {
                 checkLoadFactor();
 
@@ -33,6 +33,8 @@
                 }
             });
 
+
+            // Elevator stopped at the floor
             elevator.on("stopped_at_floor", function(floor) {
                 checkLoadFactor();
 
@@ -52,31 +54,34 @@
                         // build queue
                         elevator.getPressedFloors().forEach((value, index) => {
                             let diff = Math.abs(elevator.currentFloor()-elevator.getPressedFloors()[index]);
-                            temp[diff] = index;
+                            if (temp.indexOf(diff) == '-1') {
+                                temp[diff] = value;
+                            } else {
+                                temp[diff+1] = value;
+                            }
+                            
                         });
 
-                        temp.sort();
-                        temp.forEach((diff, index) => {
-                            configureIndicator(elevator.getPressedFloors()[index]);
-                            elevator.goToFloor(elevator.getPressedFloors()[index]);
-                        })
-                    } 
+                        temp = temp.filter(item => item > -1);
+                    
+                        elevator.destinationQueue = temp;
+                        elevator.checkDestinationQueue();
+                } 
             }
 
             function configureIndicator(floor) {
                 let destination = elevator.currentFloor() - floor;
-                    // console.log(destination)
-                    // if (destination < 0) {
-                    //     elevator.goingUpIndicator(true)
-                    //     elevator.goingDownIndicator(false);
-                    // } else {
-                    //     elevator.goingDownIndicator(true);
-                    //     elevator.goingUpIndicator(false);
-                    // }
+                if (destination < 0) {
+                    elevator.goingUpIndicator(true)
+                    elevator.goingDownIndicator(false);
+                } else {
+                    elevator.goingDownIndicator(true);
+                    elevator.goingUpIndicator(false);
+                }
             }
 
             function checkLoadFactor() {
-                if (elevator.loadFactor() > 0.4) {
+                if (elevator.loadFactor() > 0.3) {
                     proritazeElevator();
                 } else {
                     proritazeFloors();
